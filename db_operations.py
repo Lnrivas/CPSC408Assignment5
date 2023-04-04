@@ -4,7 +4,7 @@ import mysql.connector
 class db_operations():
 
     # constructor with connection path to database
-    def __init__(self, conn_path):
+    def __init__(self):
         #Make Connection
         self.connection = mysql.connector.connect(host = "localhost",
         user = "root",

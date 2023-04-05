@@ -12,6 +12,7 @@ db_ops = db_operations()
 def start_screen():
     print("Welcome to the RideShare app!")
 
+# gets user input for which type of user they are (new user or returning user)
 def user_type_selection():
     print('''Select the type of user you are:
     1. New user
@@ -19,6 +20,7 @@ def user_type_selection():
     ''')
     return helper.get_choice([1,2])
 
+# gets user input for which account type to create (rider account or driver account)
 def account_type_selection():
     print('''Select the type of account you want to make:
     1. Create rider account
@@ -26,28 +28,32 @@ def account_type_selection():
     ''')
     return helper.get_choice([1,2])
 
+# creates a rider account
 def create_rider_account():
-    print("making rider account")
+    print("making rider account") # INCOMPLETE METHOD
 
+# creates a driver account
 def create_driver_account():
-    print("making driver account")
+    print("making driver account") # INCOMPLETE METHOD
+
+# gets user input for their userID and determines if they are a rider or a driver
+def determine_user_type():
+    userID = input("Enter your user ID: ") # INCOMPLETE METHOD
 
 # main program
 start_screen()
-
 user_type = user_type_selection()
 if user_type == 1:
     print("You are a new user")
-    #create either rider or driver account
     account_type = account_type_selection()
     if account_type == 1:
         create_rider_account()
     if account_type == 2:
         create_driver_account()
-
 if user_type == 2:
     print("You are a returning user")
-    # provide their user ID and determine whether they are a driver or a rider
+    determine_user_type()
+
 
 
 # deconstruct at end

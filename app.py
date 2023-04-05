@@ -19,14 +19,35 @@ def user_type_selection():
     ''')
     return helper.get_choice([1,2])
 
+def account_type_selection():
+    print('''Select the type of account you want to make:
+    1. Create rider account
+    2. Create driver account
+    ''')
+    return helper.get_choice([1,2])
+
+def create_rider_account():
+    print("making rider account")
+
+def create_driver_account():
+    print("making driver account")
+
 # main program
 start_screen()
 
 user_type = user_type_selection()
 if user_type == 1:
     print("You are a new user")
+    #create either rider or driver account
+    account_type = account_type_selection()
+    if account_type == 1:
+        create_rider_account()
+    if account_type == 2:
+        create_driver_account()
+
 if user_type == 2:
     print("You are a returning user")
+    # provide their user ID and determine whether they are a driver or a rider
 
 
 # deconstruct at end

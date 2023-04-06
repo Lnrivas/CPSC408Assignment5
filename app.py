@@ -39,7 +39,7 @@ def create_rider_account():
     db_ops.add_record(query)
 
 # creates a driver account
-def create_driver_account(): 
+def create_driver_account():
     print("making driver account")
     userID = input("Enter a new user ID (must be an integer): ")
     name = input("Enter your name: ")
@@ -51,7 +51,14 @@ def create_driver_account():
 
 # gets user input for their userID and determines if they are a rider or a driver
 def determine_user_type():
-    userID = input("Enter your user ID: ") # INCOMPLETE METHOD
+    userID = input("Enter your user ID: ")
+    query = f'''
+    SELECT *
+    FROM User
+    WHERE userID = {userID};
+    '''
+    record = db_ops.select_record(query)
+    return record[0][4]
 
 # main program
 start_screen()
@@ -65,7 +72,8 @@ if user_type == 1:
         create_driver_account()
 if user_type == 2:
     print("You are a returning user")
-    determine_user_type()
+    rider_or_driver = determine_user_type()
+    print("You are a " + rider_or_driver)
 
 
 

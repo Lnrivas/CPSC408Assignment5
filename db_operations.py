@@ -21,7 +21,6 @@ class db_operations():
             UserID INT PRIMARY KEY NOT NULL,
             Name VARCHAR(50) NOT NULL,
             Email VARCHAR(100) NOT NULL UNIQUE,
-            Phone VARCHAR(15) NOT NULL UNIQUE,
             Password VARCHAR(100) NOT NULL,
             UserType ENUM('Rider', 'Driver') NOT NULL
         );
@@ -39,19 +38,6 @@ class db_operations():
         '''
         self.cursor.execute(query)
         print("Driver table Created")
-
-    def create_vehicle_table(self):
-        query = '''
-        CREATE TABLE Vehicle(
-            VehicleID INT PRIMARY KEY NOT NULL,
-            Make VARCHAR(50) NOT NULL,
-            Model VARCHAR(50) NOT NULL,
-            Year INT NOT NULL,
-            License_plate VARCHAR(10) NOT NULL UNIQUE
-        );
-        '''
-        self.cursor.execute(query)
-        print("Vehicle table Created")
 
     def create_trip_table(self):
         query = '''

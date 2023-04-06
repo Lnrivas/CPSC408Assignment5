@@ -2,19 +2,12 @@
 •	UserID (int, PK, NN)
 •	Name (varchar(50), NN)
 •	Email (varchar(100), NN, UQ)
-•	Phone (varchar(15), NN, UQ)
 •	Password (varchar(100), NN)
 •	UserType (enum('Rider', 'Driver'), NN)
 0.	Driver
 •	DriverID (int, PK, FK, NN)
 •	Driver_mode (bool, NN)
 •	Rating (float, NN)
-0.	Vehicle
-•	VehicleID (int, PK, NN)
-•	Make (varchar(50), NN)
-•	Model (varchar(50), NN)
-•	Year (int, NN)
-•	License_plate (varchar(10), NN, UQ)
 0.	Trip
 •	TripID (int, PK, NN)
 •	RiderID (int, FK, NN)

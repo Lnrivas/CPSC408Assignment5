@@ -69,6 +69,10 @@ class db_operations():
         self.cursor.execute(query)
         print("Rating table Created")
 
+    def add_record(self, query):
+        self.cursor.execute(query) 
+        self.connection.commit()
+
     # destructor that closes connection to database
     def destructor(self):
         self.connection.close()

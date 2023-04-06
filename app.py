@@ -29,11 +29,25 @@ def account_type_selection():
 
 # creates a rider account
 def create_rider_account():
-    print("making rider account") # INCOMPLETE METHOD
+    print("making rider account")
+    userID = input("Enter a new user ID (must be an integer): ")
+    name = input("Enter your name: ")
+    email = input("Enter your email: ")
+    password = input("Enter your password: ")
+    userType = "Rider"
+    query = f"INSERT INTO User VALUES({userID},'{name}','{email}','{password}','{userType}');"
+    db_ops.add_record(query)
 
 # creates a driver account
-def create_driver_account():
-    print("making driver account") # INCOMPLETE METHOD
+def create_driver_account(): 
+    print("making driver account")
+    userID = input("Enter a new user ID (must be an integer): ")
+    name = input("Enter your name: ")
+    email = input("Enter your email: ")
+    password = input("Enter your password: ")
+    userType = "Driver"
+    query = f"INSERT INTO User VALUES({userID},'{name}','{email}','{password}','{userType}');"
+    db_ops.add_record(query)
 
 # gets user input for their userID and determines if they are a rider or a driver
 def determine_user_type():

@@ -3,22 +3,53 @@ import mysql.connector
 class db_operations():
 
     # constructor with connection path to database
-    def __init__(self, db_name):
+    def __init__(self, db_name, user, password):
 
         self.db_name = db_name
 
         # Make Connection
         self.connection = mysql.connector.connect(host = "localhost",
-            user = "root",
-            password = "password",
+            user = user,
+            password = password,
             auth_plugin = 'mysql_native_password')
 
         #create cursor object
         self.cursor = self.connection.cursor()
+
+        # Check if database exists
+        self.cursor.execute("SHOW DATABASES")
+        databases = [db[0] for db in self.cursor.fetchall()]
+        if db_name not in databases:
+            self.create_database(self.db_name)
+            self.import_db('rideshare_dump.sql')
+            
+        self.cursor.execute(f"USE {db_name}")
+
         print("Connection Made.")
 
-        self.create_database(self.db_name)
-        self.cursor.execute(f"USE {db_name}")
+    def import_db(self, dump_file):
+        try:
+            connection_import = mysql.connector.connect(host="localhost",
+                                                    user="root",
+                                                    password="password",
+                                                    auth_plugin='mysql_native_password',
+                                                    database=self.db_name)
+            cursor_import = connection_import.cursor()
+
+            with open(dump_file, 'r') as file:
+                file_content = file.read()
+                queries = file_content.split(';')
+                for query in queries:
+                    if query.strip():
+                        cursor_import.execute(query)
+                connection_import.commit()
+
+        except Exception as e:
+            print(f"Error importing database: {e}")
+        finally:
+            cursor_import.close()
+            connection_import.close()
+
 
     # Attempts to create the database if not found
     def create_database(self, db_name):
@@ -45,8 +76,6 @@ class db_operations():
         self.create_table("User", """
             UserID INT AUTO_INCREMENT PRIMARY KEY,
             Name VARCHAR(50) NOT NULL,
-            Email VARCHAR(100) NOT NULL UNIQUE,
-            Password VARCHAR(100) NOT NULL,
             UserType ENUM('Rider', 'Driver') NOT NULL
         """)
 
@@ -74,29 +103,34 @@ class db_operations():
             RiderID INT NOT NULL,
             DriverID INT NOT NULL,
             Rating_score INT NOT NULL CHECK (Rating_score BETWEEN 1 AND 5),
-            Timestamp DATETIME NOT NULL,
             FOREIGN KEY (TripID) REFERENCES Trip (TripID),
             FOREIGN KEY (RiderID) REFERENCES User (UserID),
             FOREIGN KEY (DriverID) REFERENCES Driver (DriverID)
         """)
+        print("Tables created!")
 
-    def insert_user(self, user_id, name, email, password, user_type):
-        query = f"INSERT INTO User (UserID, Name, Email, Password, UserType) VALUES ('{user_id}', '{name}', '{email}', '{password}', '{user_type}')"
+    # Creates a new record for user
+    def insert_user(self, user_id, name, user_type):
+        query = f"INSERT INTO User (UserID, Name, UserType) VALUES ('{user_id}','{name}', '{user_type}')"
         self.add_record(query)
 
+    # Creates a new record for driver
     def insert_driver(self, driver_id, driver_mode, rating):
         query = f"INSERT INTO Driver (DriverID, Driver_mode, Rating) VALUES ({driver_id}, {driver_mode}, {rating})"
         self.add_record(query)
 
+    # Creates a new record for a trip
     def insert_trip(self, rider_id, driver_id, pickup_location, dropoff_location, fare):
         query = f"INSERT INTO Trip (RiderID, DriverID, Pickup_location, Dropoff_location, Fare) VALUES ({rider_id}, {driver_id}, '{pickup_location}', '{dropoff_location}', {fare})"
         self.add_record(query)
+        self.cursor.execute("SELECT LAST_INSERT_ID()")
+        trip_id = self.cursor.fetchone()[0]
+        return trip_id
 
     # Rating table operations
-    def insert_rating(self, trip_id, rider_id, driver_id, rating_score, timestamp):
-        query = f"INSERT INTO Rating (TripID, RiderID, DriverID, Rating_score, Timestamp) VALUES ({trip_id}, {rider_id}, {driver_id}, {rating_score}, '{timestamp}')"
+    def insert_rating(self, trip_id, rider_id, driver_id, rating_score):
+        query = f"INSERT INTO Rating (TripID, RiderID, DriverID, Rating_score) VALUES ({trip_id}, {rider_id}, {driver_id}, {rating_score})"
         self.add_record(query)
-
 
     # User table operations
     def get_user_by_id(self, user_id):
@@ -134,7 +168,7 @@ class db_operations():
 
     # Function to get the last trip by RiderID
     def get_last_trip_by_rider(self, rider_id):
-        query = f"SELECT * FROM Trip WHERE RiderID={rider_id} ORDER BY Dropoff_time DESC LIMIT 1"
+        query = f"SELECT * FROM Trip WHERE RiderID={rider_id} ORDER BY TripID DESC LIMIT 1"
         return self.select_record(query)
 
     # Function to update the driver rating
@@ -145,8 +179,6 @@ class db_operations():
             updated_rating = (current_rating + new_rating) / 2
             query = f"UPDATE Driver SET Rating={updated_rating} WHERE DriverID={driver_id}"
             self.add_record(query)
-
-
 
     def add_record(self, query):
         self.cursor.execute(query)
@@ -161,6 +193,7 @@ class db_operations():
     def close(self):
         self.connection.close()
 
+# A main to test the functions
 if __name__ == '__main__':
     db_ops = db_operations("RideShare")
     db_ops.get_user_by_id(20)

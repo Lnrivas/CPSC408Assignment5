@@ -1,8 +1,6 @@
 0.	User
 •	UserID (int, PK, NN)
 •	Name (varchar(50), NN)
-•	Email (varchar(100), NN, UQ)
-•	Password (varchar(100), NN)
 •	UserType (enum('Rider', 'Driver'), NN)
 0.	Driver
 •	DriverID (int, PK, FK, NN)
@@ -14,8 +12,6 @@
 •	DriverID (int, FK, NN)
 •	Pickup_location (varchar(200), NN)
 •	Dropoff_location (varchar(200), NN)
-•	Pickup_time (datetime, NN)
-•	Dropoff_time (datetime, NN)
 •	Fare (decimal(7,2), NN)
 0.	Rating
 •	RatingID (int, PK, NN)
@@ -23,7 +19,6 @@
 •	RiderID (int, FK, NN)
 •	DriverID (int, FK, NN)
 •	Rating_score (int, NN, CHECK (Rating_score BETWEEN 1 AND 5))
-•	Timestamp (datetime, NN)
 
 Note: PK - Primary Key, NN - Not Null, UQ - Unique, FK - Foreign Key, varchar(N) - Variable Character with N length,
 decimal(M, N) - Decimal value with M total digits and N digits after the decimal point, datetime - Date and Time data type,

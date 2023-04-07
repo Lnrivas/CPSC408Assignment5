@@ -1,4 +1,5 @@
 import mysql.connector
+import os
 
 class db_operations():
 
@@ -20,8 +21,10 @@ class db_operations():
         self.cursor.execute("SHOW DATABASES")
         databases = [db[0] for db in self.cursor.fetchall()]
         if db_name not in databases:
-            self.create_database(self.db_name, user, password)
-            self.import_db('rideshare_dump.sql')
+            self.create_database(self.db_name)
+            dump_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'rideshare_dump.sql')
+            self.import_db(dump_file_path, user, password)
+            print("Imported the rideshare_dump")
             
         self.cursor.execute(f"USE {db_name}")
 

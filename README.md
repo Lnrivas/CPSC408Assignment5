@@ -53,3 +53,7 @@ The application uses the following database schema, with four tables:
     * RiderID (int, Foreign Key, Not Null)
     * DriverID (int, Foreign Key, Not Null)
     * Rating_score (int, Not Null, CHECK (Rating_score BETWEEN 1 AND 5))
+
+## Entity-Relationship Diagram
+
+![ER Diagram](data/er_diagram.jpg)

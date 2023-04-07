@@ -20,18 +20,18 @@ class db_operations():
         self.cursor.execute("SHOW DATABASES")
         databases = [db[0] for db in self.cursor.fetchall()]
         if db_name not in databases:
-            self.create_database(self.db_name)
+            self.create_database(self.db_name, user, password)
             self.import_db('rideshare_dump.sql')
             
         self.cursor.execute(f"USE {db_name}")
 
         print("Connection Made.")
 
-    def import_db(self, dump_file):
+    def import_db(self, dump_file, user, password):
         try:
             connection_import = mysql.connector.connect(host="localhost",
-                                                    user="root",
-                                                    password="password",
+                                                    user=user,
+                                                    password=password,
                                                     auth_plugin='mysql_native_password',
                                                     database=self.db_name)
             cursor_import = connection_import.cursor()

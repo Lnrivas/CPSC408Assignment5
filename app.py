@@ -1,81 +1,134 @@
-from helper import helper
 from db_operations import db_operations
 
-db_ops = db_operations()
+def rider_menu(user_id, db):
+    while True:
+        print("\nRider Menu:")
+        print("1. View Rides")
+        print("2. Find a Driver")
+        print("3. Rate My Driver")
+        print("4. Logout")
+        option = input("Choose an option: ")
 
-# db_ops.create_user_table() # RUN ONLY ONCE, THEN COMMENT OUT
-# db_ops.create_driver_table() # RUN ONLY ONCE, THEN COMMENT OUT
-# db_ops.create_trip_table() # RUN ONLY ONCE, THEN COMMENT OUT
-# db_ops.create_rating_table() # RUN ONLY ONCE, THEN COMMENT OUT
+        if option == '1':
+            rides = db.get_rides_by_user(user_id, "Rider")
+            for ride in rides:
+                print("Ride ID:", ride[0], "Pickup:", ride[3], "Dropoff:", ride[4])
 
-def start_screen():
-    print("Welcome to the RideShare app!")
+        elif option == '2':
+            driver = db.find_driver()
+            if driver:
+                print("Found a driver! Driver ID:", driver[0])
+                pickup_location = input("Enter pickup location: ")
+                dropoff_location = input("Enter dropoff location: ")
+                fare = float(input("Enter fare: "))
+                db.insert_trip(user_id, driver[0], pickup_location, dropoff_location, fare)
+                print("Ride created successfully.")
+            else:
+                print("No drivers are available at the moment.")
 
-# gets user input for which type of user they are (new user or returning user)
-def user_type_selection():
-    print('''Select the type of user you are:
-    1. New user
-    2. Returning user
-    ''')
-    return helper.get_choice([1,2])
+        elif option == '3':
+            last_trip = db.get_last_trip_by_rider(user_id)
+            if last_trip:
+                print("Last ride information:")
+                print("Ride ID:", last_trip[0][0], "Driver ID:", last_trip[0][2])
+                correct_ride = input("Is this the correct ride? (yes/no): ")
+                if correct_ride.lower() == 'yes':
+                    new_rating = int(input("Enter your rating (1-5): "))
+                    db.update_driver_rating(last_trip[0][2], new_rating)
+                    print("Rating updated successfully.")
+                else:
+                    print("Please contact support to rate a different ride.")
+            else:
+                print("No rides found.")
 
-# gets user input for which account type to create (rider account or driver account)
-def account_type_selection():
-    print('''Select the type of account you want to make:
-    1. Create rider account
-    2. Create driver account
-    ''')
-    return helper.get_choice([1,2])
+        elif option == '4':
+            break
 
-# creates a rider account
-def create_rider_account():
-    print("making rider account")
-    userID = input("Enter a new user ID (must be an integer): ")
-    name = input("Enter your name: ")
-    email = input("Enter your email: ")
-    password = input("Enter your password: ")
-    userType = "Rider"
-    query = f"INSERT INTO User VALUES({userID},'{name}','{email}','{password}','{userType}');"
-    db_ops.add_record(query)
-
-# creates a driver account
-def create_driver_account():
-    print("making driver account")
-    userID = input("Enter a new user ID (must be an integer): ")
-    name = input("Enter your name: ")
-    email = input("Enter your email: ")
-    password = input("Enter your password: ")
-    userType = "Driver"
-    query = f"INSERT INTO User VALUES({userID},'{name}','{email}','{password}','{userType}');"
-    db_ops.add_record(query)
-
-# gets user input for their userID and determines if they are a rider or a driver
-def determine_user_type():
-    userID = input("Enter your user ID: ")
-    query = f'''
-    SELECT *
-    FROM User
-    WHERE userID = {userID};
-    '''
-    record = db_ops.select_record(query)
-    return record[0][4]
-
-# main program
-start_screen()
-user_type = user_type_selection()
-if user_type == 1:
-    print("You are a new user")
-    account_type = account_type_selection()
-    if account_type == 1:
-        create_rider_account()
-    if account_type == 2:
-        create_driver_account()
-if user_type == 2:
-    print("You are a returning user")
-    rider_or_driver = determine_user_type()
-    print("You are a " + rider_or_driver)
+        else:
+            print("Invalid option. Please try again.")
 
 
+def driver_menu(user_id, db):
 
-# deconstruct at end
-db_ops.destructor()
+    while True:
+        print("\nDriver Menu:")
+        print("1. View Rating")
+        print("2. View Rides")
+        print("3. Activate/Deactivate Driver Mode")
+        print("4. Logout")
+        option = input("Choose an option: ")
+
+        if option == '1':
+            driver = db.get_driver_by_id(user_id)
+            if driver:
+                print("Your current rating is:", driver[0][2])
+
+        elif option == '2':
+            rides = db.get_rides_by_user(user_id, "Driver")
+            for ride in rides:
+                print("Ride ID:", ride[0], "Pickup:", ride[3], "Dropoff:", ride[4])
+
+        elif option == '3':
+            driver = db.get_driver_by_id(user_id)
+            if driver:
+                new_mode = not driver[0][1]
+                db.update_driver_mode(user_id, new_mode)
+                print("Driver mode updated.")
+            else:
+                print("Driver not found.")
+
+        elif option == '4':
+            break
+
+        else:
+            print("Invalid option. Please try again.")
+
+
+def main():
+    db = db_operations("RideShare")
+    db.create_tables()
+
+    while True:
+        print("\nWelcome to Rideshare!")
+        print("1. New User")
+        print("2. Returning User")
+        print("3. Exit")
+        option = input("Choose an option: ")
+
+        if option == '1':
+            user_id = input("Enter id: ")
+            name = input("Enter your name: ")
+            email = input("Enter your email: ")
+            password = input("Enter your password: ")
+            user_type = input("Enter user type (Rider/Driver): ")
+
+            if user_type.lower() == 'rider':
+                db.insert_user(user_id, name, email, password, 'Rider')
+            elif user_type.lower() == 'driver':
+                db.insert_user(user_id, name, email, password, 'Driver')
+                db.insert_driver(user_id, False, 5)
+
+            print(f"User created successfully. Your user ID is {user_id}.")
+
+        elif option == '2':
+            user_id = int(input("Enter your user ID: "))
+            user = db.get_user_by_id(user_id)
+            if user:
+                user_type = user[0][4]
+                if user_type == 'Rider':
+                    rider_menu(user_id, db)
+                elif user_type == 'Driver':
+                    driver_menu(user_id, db)
+            else:
+                print("User not found. Please try again.")
+
+        elif option == '3':
+            break
+
+        else:
+            print("Invalid option. Please try again.")
+
+    db.close()
+
+if __name__ == "__main__":
+    main()

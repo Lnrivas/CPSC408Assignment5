@@ -1,73 +1,152 @@
-#import MySQL
 import mysql.connector
 
 class db_operations():
 
     # constructor with connection path to database
-    def __init__(self):
-        #Make Connection
+    def __init__(self, db_name):
+
+        self.db_name = db_name
+
+        # Make Connection
         self.connection = mysql.connector.connect(host = "localhost",
-        user = "root",
-        password = "cpsc-408",
-        auth_plugin = 'mysql_native_password',
-        database = "RideShare")
+            user = "root",
+            password = "password",
+            auth_plugin = 'mysql_native_password')
+
         #create cursor object
         self.cursor = self.connection.cursor()
-        print("connection made")
+        print("Connection Made.")
 
-    def create_user_table(self):
-        query = '''
-        CREATE TABLE User(
-            UserID INT PRIMARY KEY NOT NULL,
+        self.create_database(self.db_name)
+        self.cursor.execute(f"USE {db_name}")
+
+    # Attempts to create the database if not found
+    def create_database(self, db_name):
+        try:
+            self.cursor.execute(f"SHOW DATABASES LIKE '{db_name}'")
+            result = self.cursor.fetchone()
+            
+            if result:
+                print(f"Database '{db_name}' already exists.")
+            else:
+                self.cursor.execute(f"CREATE DATABASE {db_name}")
+                print(f"Database '{db_name}' created successfully.")
+            
+        except mysql.connector.Error as err:
+            print(f"Failed to create or check database '{db_name}': {err}")
+
+    # Attempts to create the tables if not found
+    def create_table(self, table_name, columns):
+        self.cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")
+        self.connection.commit()
+
+    # Creates all the tables
+    def create_tables(self):
+        self.create_table("User", """
+            UserID INT AUTO_INCREMENT PRIMARY KEY,
             Name VARCHAR(50) NOT NULL,
             Email VARCHAR(100) NOT NULL UNIQUE,
             Password VARCHAR(100) NOT NULL,
             UserType ENUM('Rider', 'Driver') NOT NULL
-        );
-        '''
-        self.cursor.execute(query)
-        print("User table Created")
+        """)
 
-    def create_driver_table(self):
-        query = '''
-        CREATE TABLE Driver(
-            DriverID INT PRIMARY KEY NOT NULL,
+        self.create_table("Driver", """
+            DriverID INT PRIMARY KEY,
             Driver_mode BOOLEAN NOT NULL,
-            Rating FLOAT NOT NULL
-        );
-        '''
-        self.cursor.execute(query)
-        print("Driver table Created")
+            Rating FLOAT NOT NULL,
+            FOREIGN KEY (DriverID) REFERENCES User (UserID)
+        """)
 
-    def create_trip_table(self):
-        query = '''
-        CREATE TABLE Trip(
-            TripID INT PRIMARY KEY NOT NULL,
+        self.create_table("Trip", """
+            TripID INT AUTO_INCREMENT PRIMARY KEY,
             RiderID INT NOT NULL,
             DriverID INT NOT NULL,
             Pickup_location VARCHAR(200) NOT NULL,
             Dropoff_location VARCHAR(200) NOT NULL,
-            Pickup_time DATETIME NOT NULL,
-            Dropoff_time DATETIME NOT NULL,
-            Fare DECIMAL(7,2) NOT NULL
-        );
-        '''
-        self.cursor.execute(query)
-        print("Trip table Created")
+            Fare DECIMAL(7,2) NOT NULL,
+            FOREIGN KEY (RiderID) REFERENCES User (UserID),
+            FOREIGN KEY (DriverID) REFERENCES Driver (DriverID)
+        """)
 
-    def create_rating_table(self):
-        query = '''
-        CREATE TABLE Rating(
-            RatingID INT PRIMARY KEY NOT NULL,
+        self.create_table("Rating", """
+            RatingID INT AUTO_INCREMENT PRIMARY KEY,
             TripID INT NOT NULL,
             RiderID INT NOT NULL,
             DriverID INT NOT NULL,
-            Rating_score INT NOT NULL CHECK(Rating_score BETWEEN 1 AND 5),
-            Timestamp DATETIME NOT NULL
-        );
-        '''
-        self.cursor.execute(query)
-        print("Rating table Created")
+            Rating_score INT NOT NULL CHECK (Rating_score BETWEEN 1 AND 5),
+            Timestamp DATETIME NOT NULL,
+            FOREIGN KEY (TripID) REFERENCES Trip (TripID),
+            FOREIGN KEY (RiderID) REFERENCES User (UserID),
+            FOREIGN KEY (DriverID) REFERENCES Driver (DriverID)
+        """)
+
+    def insert_user(self, user_id, name, email, password, user_type):
+        query = f"INSERT INTO User (UserID, Name, Email, Password, UserType) VALUES ('{user_id}', '{name}', '{email}', '{password}', '{user_type}')"
+        self.add_record(query)
+
+    def insert_driver(self, driver_id, driver_mode, rating):
+        query = f"INSERT INTO Driver (DriverID, Driver_mode, Rating) VALUES ({driver_id}, {driver_mode}, {rating})"
+        self.add_record(query)
+
+    def insert_trip(self, rider_id, driver_id, pickup_location, dropoff_location, fare):
+        query = f"INSERT INTO Trip (RiderID, DriverID, Pickup_location, Dropoff_location, Fare) VALUES ({rider_id}, {driver_id}, '{pickup_location}', '{dropoff_location}', {fare})"
+        self.add_record(query)
+
+    # Rating table operations
+    def insert_rating(self, trip_id, rider_id, driver_id, rating_score, timestamp):
+        query = f"INSERT INTO Rating (TripID, RiderID, DriverID, Rating_score, Timestamp) VALUES ({trip_id}, {rider_id}, {driver_id}, {rating_score}, '{timestamp}')"
+        self.add_record(query)
+
+
+    # User table operations
+    def get_user_by_id(self, user_id):
+        query = f"SELECT * FROM User WHERE UserID={user_id}"
+        return self.select_record(query)
+
+    # Driver table operations
+    def get_driver_by_id(self, driver_id):
+        query = f"SELECT * FROM Driver WHERE DriverID={driver_id}"
+        return self.select_record(query)
+
+    # Function to update the driver mode
+    def update_driver_mode(self, driver_id, new_mode):
+        query = f"UPDATE Driver SET Driver_mode={new_mode} WHERE DriverID={driver_id}"
+        self.add_record(query)
+
+    # Function to get rides for a user (rider or driver)
+    def get_rides_by_user(self, user_id, user_type):
+        if user_type == 'Rider':
+            query = f"SELECT * FROM Trip WHERE RiderID={user_id}"
+        elif user_type == 'Driver':
+            query = f"SELECT * FROM Trip WHERE DriverID={user_id}"
+        
+        return self.select_record(query)
+
+    # Function to find an available driver
+    def find_driver(self):
+        query = "SELECT * FROM Driver WHERE Driver_mode=True"
+        drivers = self.select_record(query)
+
+        if drivers:
+            return drivers[0]
+        else:
+            return None
+
+    # Function to get the last trip by RiderID
+    def get_last_trip_by_rider(self, rider_id):
+        query = f"SELECT * FROM Trip WHERE RiderID={rider_id} ORDER BY Dropoff_time DESC LIMIT 1"
+        return self.select_record(query)
+
+    # Function to update the driver rating
+    def update_driver_rating(self, driver_id, new_rating):
+        driver = self.get_driver_by_id(driver_id)
+        if driver:
+            current_rating = driver[0][2]
+            updated_rating = (current_rating + new_rating) / 2
+            query = f"UPDATE Driver SET Rating={updated_rating} WHERE DriverID={driver_id}"
+            self.add_record(query)
+
+
 
     def add_record(self, query):
         self.cursor.execute(query)
@@ -79,5 +158,10 @@ class db_operations():
         return results
 
     # destructor that closes connection to database
-    def destructor(self):
+    def close(self):
         self.connection.close()
+
+if __name__ == '__main__':
+    db_ops = db_operations("RideShare")
+    db_ops.get_user_by_id(20)
+    db_ops.close()

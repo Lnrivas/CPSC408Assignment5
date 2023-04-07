@@ -1,6 +1,7 @@
 # RideShare
 
 RideShare is a simple command-line based ride-sharing application that allows users to register as riders or drivers, and manage trips.
+Authors: Luis Rivas, Gilberto Arellano
 
 ## Requirements
 

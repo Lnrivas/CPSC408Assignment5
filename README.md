@@ -56,4 +56,4 @@ The application uses the following database schema, with four tables:
 
 ## Entity-Relationship Diagram
 
-![ER Diagram](data/er_diagram.jpg)
+![ER Diagram](images/er_diagram.png)

@@ -13,7 +13,7 @@ class db_operations():
             password = password,
             auth_plugin = 'mysql_native_password')
 
-        #create cursor object
+        # Create cursor object
         self.cursor = self.connection.cursor()
 
         # Check if database exists
@@ -196,5 +196,5 @@ class db_operations():
 # A main to test the functions
 if __name__ == '__main__':
     db_ops = db_operations("RideShare")
-    db_ops.get_user_by_id(20)
+    db_ops.get_user_by_id(2)
     db_ops.close()

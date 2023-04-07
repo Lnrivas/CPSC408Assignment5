@@ -27,3 +27,29 @@ To run the application, navigate to the directory where the source code is locat
 ```sh
 python app.py
 ```
+
+## Database Schema
+
+The application uses the following database schema, with four tables:
+
+1. User
+    * UserID (int, Primary Key, Not Null)
+    * Name (varchar(50), Not Null)
+    * UserType (enum('Rider', 'Driver'), Not Null)
+2. Driver
+    * DriverID (int, Primary Key, Foreign Key, Not Null)
+    * Driver_mode (bool, Not Null)
+    * Rating (float, Not Null)
+3. Trip
+    * TripID (int, Primary Key, Not Null)
+    * RiderID (int, Foreign Key, Not Null)
+    * DriverID (int, Foreign Key, Not Null)
+    * Pickup_location (varchar(200), Not Null)
+    * Dropoff_location (varchar(200), Not Null)
+    * Fare (decimal(7,2), Not Null)
+4. Rating
+    * RatingID (int, Primary Key, Not Null)
+    * TripID (int, Foreign Key, Not Null)
+    * RiderID (int, Foreign Key, Not Null)
+    * DriverID (int, Foreign Key, Not Null)
+    * Rating_score (int, Not Null, CHECK (Rating_score BETWEEN 1 AND 5))
